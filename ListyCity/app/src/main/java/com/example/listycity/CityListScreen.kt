@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +34,7 @@ fun CityListScreen(
     cities: List<City>,
     onAddCity: (City) -> Unit,
     onUpdateCity: (City, City) -> Unit,
+    onDeleteCity: (City) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var newCityName by remember { mutableStateOf("") }
@@ -40,6 +43,35 @@ fun CityListScreen(
     var selectedCity by remember { mutableStateOf<City?>(null) }
     var editedCityName by remember { mutableStateOf("") }
     var editedProvinceName by remember { mutableStateOf("") }
+    var cityPendingDeletion by remember { mutableStateOf<City?>(null) }
+
+    cityPendingDeletion?.let { city ->
+        AlertDialog(
+            onDismissRequest = { cityPendingDeletion = null },
+            title = { Text("Delete ${city.name}?") },
+            text = { Text("This city will also be deleted from Firestore.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteCity(city)
+                        if (selectedCity == city) {
+                            selectedCity = null
+                            editedCityName = ""
+                            editedProvinceName = ""
+                        }
+                        cityPendingDeletion = null
+                    }
+                ) {
+                    Text("DELETE")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { cityPendingDeletion = null }) {
+                    Text("CANCEL")
+                }
+            }
+        )
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         Row(
@@ -159,6 +191,7 @@ fun CityListScreen(
             itemsIndexed(cities) { index, city ->
                 CityRow(
                     city = city,
+                    onDeleteClick = { cityPendingDeletion = city },
                     onClick = {
                         showAddCityFields = false
                         newCityName = ""
@@ -180,6 +213,7 @@ fun CityListScreen(
 @Composable
 fun CityRow(
     city: City,
+    onDeleteClick: () -> Unit,
     onClick: () -> Unit
 ) {
     Row(
@@ -199,6 +233,10 @@ fun CityRow(
             fontSize = 30.sp,
             modifier = Modifier.weight(1f)
         )
+
+        TextButton(onClick = onDeleteClick) {
+            Text("DELETE")
+        }
     }
 }
 
@@ -213,7 +251,8 @@ fun CityListScreenPreview() {
                 City("Calgary", "AB")
             ),
             onAddCity = {},
-            onUpdateCity = { _, _ -> }
+            onUpdateCity = { _, _ -> },
+            onDeleteCity = {}
         )
     }
 }
