@@ -28,4 +28,4 @@ person finding it is kindly requested to immediately report, including
 the URL or other repository locating information, to the current CMPUT 301
 course instructors and/or to the following email addresses:
 
-          siddh1@ualberta.ca
+          hktang@ualberta.ca
